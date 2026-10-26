@@ -1,0 +1,922 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quantum AI Network (QTM) - Web3 & AI Ecosystem</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        qtm: {
+                            cyan: '#00f3ff',
+                            purple: '#8000ff',
+                            pink: '#ff007f',
+                            dark: '#0a0d18',
+                            card: '#121629'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['Fira Code', 'monospace']
+                    },
+                    boxShadow: {
+                        'neon-cyan': '0 0 20px rgba(0, 243, 255, 0.4)',
+                        'neon-purple': '0 0 20px rgba(128, 0, 255, 0.4)',
+                        'neon-pink': '0 0 20px rgba(255, 0, 127, 0.4)'
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome & Lucide Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js for Live Crypto Charts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0a0d18;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #00f3ff44;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #00f3ff88;
+        }
+
+        /* Neon Glow Effects */
+        .neon-border-cyan {
+            border: 1px solid rgba(0, 243, 255, 0.3);
+            box-shadow: inset 0 0 15px rgba(0, 243, 255, 0.1), 0 0 15px rgba(0, 243, 255, 0.2);
+        }
+        .neon-border-purple {
+            border: 1px solid rgba(128, 0, 255, 0.3);
+            box-shadow: inset 0 0 15px rgba(128, 0, 255, 0.1), 0 0 15px rgba(128, 0, 255, 0.2);
+        }
+        .cyber-grid {
+            background-size: 40px 40px;
+            background-image: 
+                linear-gradient(to right, rgba(0, 243, 255, 0.05) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(0, 243, 255, 0.05) 1px, transparent 1px);
+        }
+        /* Glassmorphism */
+        .glass-panel {
+            background: rgba(18, 22, 41, 0.75);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+    </style>
+</head>
+<body class="bg-qtm-dark text-slate-100 font-sans min-h-screen overflow-x-hidden relative cyber-grid">
+
+    <!-- Interactive Canvas Particle Background -->
+    <canvas id="quantumCanvas" class="fixed inset-0 pointer-events-none z-0"></canvas>
+
+    <div class="relative z-10 flex flex-col min-h-screen">
+        <!-- Navigation Header -->
+        <header class="sticky top-0 z-40 glass-panel border-b border-cyan-500/20 px-4 lg:px-8 py-3">
+            <div class="max-w-7xl mx-auto flex items-center justify-between">
+                <!-- Logo -->
+                <div class="flex items-center space-x-3 cursor-pointer" onclick="playSound('click'); switchTab('dashboard')">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 via-purple-600 to-pink-500 p-[2px] shadow-neon-cyan">
+                        <div class="w-full h-full bg-qtm-dark rounded-[10px] flex items-center justify-center">
+                            <i class="fa-solid font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-pink-500 fa-atom text-xl animate-spin-slow"></i>
+                        </div>
+                    </div>
+                    <div>
+                        <span class="font-bold text-lg lg:text-xl tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-purple-300 to-pink-500">QUANTUM AI</span>
+                        <span class="text-xs text-cyan-400 block -mt-1 font-mono tracking-widest">NETWORK (QTM)</span>
+                    </div>
+                </div>
+
+                <!-- Navigation Tabs -->
+                <nav class="hidden md:flex items-center space-x-1 lg:space-x-2 bg-slate-900/80 p-1.5 rounded-xl border border-slate-800">
+                    <button onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-btn px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center space-x-2 text-cyan-400 bg-cyan-950/40 border border-cyan-500/30">
+                        <i class="fa-solid fa-chart-line"></i><span>Dashboard</span>
+                    </button>
+                    <button onclick="switchTab('staking')" id="nav-staking" class="nav-btn px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center space-x-2 text-slate-400 hover:text-cyan-300">
+                        <i class="fa-solid fa-vault"></i><span>Staking & Pass</span>
+                    </button>
+                    <button onclick="switchTab('auditor')" id="nav-auditor" class="nav-btn px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center space-x-2 text-slate-400 hover:text-cyan-300">
+                        <i class="fa-solid fa-shield-halved"></i><span>AI Auditor</span>
+                    </button>
+                    <button onclick="switchTab('roadmap')" id="nav-roadmap" class="nav-btn px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center space-x-2 text-slate-400 hover:text-cyan-300">
+                        <i class="fa-solid fa-map-location-dot"></i><span>Roadmap</span>
+                    </button>
+                </nav>
+
+                <!-- Wallet Connect & Controls -->
+                <div class="flex items-center space-x-3">
+                    <button id="walletBtn" onclick="toggleWallet()" class="relative group px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-300 bg-gradient-to-r from-cyan-500 via-purple-600 to-pink-500 p-[1px] hover:shadow-neon-cyan">
+                        <div class="bg-qtm-dark px-3 py-1.5 rounded-[11px] flex items-center space-x-2 transition group-hover:bg-opacity-80">
+                            <i class="fa-solid fa-wallet text-cyan-400" id="walletIcon"></i>
+                            <span id="walletText" class="text-cyan-300 font-mono">Connect Wallet</span>
+                        </div>
+                    </button>
+                </div>
+            </div>
+            <!-- Mobile Navigation Footer Bar -->
+            <div class="md:hidden flex justify-around mt-3 pt-2 border-t border-slate-800 text-xs font-mono">
+                <button onclick="switchTab('dashboard')" class="mobile-nav flex flex-col items-center text-cyan-400"><i class="fa-solid fa-chart-line text-base"></i>Dashboard</button>
+                <button onclick="switchTab('staking')" class="mobile-nav flex flex-col items-center text-slate-400"><i class="fa-solid fa-vault text-base"></i>Staking</button>
+                <button onclick="switchTab('auditor')" class="mobile-nav flex flex-col items-center text-slate-400"><i class="fa-solid fa-shield-halved text-base"></i>AI Audit</button>
+                <button onclick="switchTab('roadmap')" class="mobile-nav flex flex-col items-center text-slate-400"><i class="fa-solid fa-map text-base"></i>Roadmap</button>
+            </div>
+        </header>
+
+        <!-- Main Content Wrapper -->
+        <main class="flex-1 max-w-7xl w-full mx-auto p-4 lg:p-8 space-y-6">
+
+            <!-- TAB 1: DASHBOARD & LIVE CHARTS -->
+            <section id="tab-dashboard" class="space-y-6">
+                <!-- Top Ticker / Metrics Bar -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div class="glass-panel p-4 rounded-2xl border border-cyan-500/20 relative overflow-hidden">
+                        <div class="text-slate-400 text-xs font-mono uppercase tracking-wider mb-1">QTM / USD Price</div>
+                        <div class="text-xl lg:text-2xl font-bold text-cyan-400 font-mono flex items-center space-x-2">
+                            <span id="qtmPrice">$2.485</span>
+                            <span class="text-xs px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 font-sans">+12.4%</span>
+                        </div>
+                        <i class="fa-solid fa-bolt absolute right-3 bottom-3 text-cyan-500/10 text-4xl"></i>
+                    </div>
+
+                    <div class="glass-panel p-4 rounded-2xl border border-purple-500/20 relative overflow-hidden">
+                        <div class="text-slate-400 text-xs font-mono uppercase tracking-wider mb-1">Total Value Locked</div>
+                        <div class="text-xl lg:text-2xl font-bold text-purple-400 font-mono" id="tvlVal">$18,420,910</div>
+                        <i class="fa-solid fa-lock absolute right-3 bottom-3 text-purple-500/10 text-4xl"></i>
+                    </div>
+
+                    <div class="glass-panel p-4 rounded-2xl border border-pink-500/20 relative overflow-hidden">
+                        <div class="text-slate-400 text-xs font-mono uppercase tracking-wider mb-1">Staking APY</div>
+                        <div class="text-xl lg:text-2xl font-bold text-pink-400 font-mono">28.4% <span class="text-xs text-slate-400 font-normal">Dynamic</span></div>
+                        <i class="fa-solid fa-fire absolute right-3 bottom-3 text-pink-500/10 text-4xl"></i>
+                    </div>
+
+                    <div class="glass-panel p-4 rounded-2xl border border-emerald-500/20 relative overflow-hidden">
+                        <div class="text-slate-400 text-xs font-mono uppercase tracking-wider mb-1">AI Audits Performed</div>
+                        <div class="text-xl lg:text-2xl font-bold text-emerald-400 font-mono">14,290+</div>
+                        <i class="fa-solid fa-microchip absolute right-3 bottom-3 text-emerald-500/10 text-4xl"></i>
+                    </div>
+                </div>
+
+                <!-- Live Chart Section -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Chart Panel (2 Cols) -->
+                    <div class="lg:col-span-2 glass-panel p-5 rounded-2xl border border-cyan-500/20 flex flex-col justify-between">
+                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
+                            <div>
+                                <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                                    <i class="fa-solid fa-chart-area text-cyan-400"></i>
+                                    QTM Market Dynamics & Live Feeds
+                                </h2>
+                                <p class="text-xs text-slate-400 font-mono">Real-time telemetry and simulated DEX liquidity tracking</p>
+                            </div>
+                            <div class="flex space-x-1 bg-slate-900/90 p-1 rounded-lg border border-slate-800 text-xs font-mono">
+                                <button onclick="setChartTimeframe('1H')" class="time-btn px-2.5 py-1 rounded bg-cyan-500/20 text-cyan-400">1H</button>
+                                <button onclick="setChartTimeframe('24H')" class="time-btn px-2.5 py-1 rounded text-slate-400 hover:text-white">24H</button>
+                                <button onclick="setChartTimeframe('7D')" class="time-btn px-2.5 py-1 rounded text-slate-400 hover:text-white">7D</button>
+                            </div>
+                        </div>
+                        <!-- Canvas for Chart -->
+                        <div class="relative h-64 lg:h-80 w-full">
+                            <canvas id="liveChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Market Stats & Quick Swap -->
+                    <div class="glass-panel p-5 rounded-2xl border border-purple-500/20 flex flex-col justify-between space-y-4">
+                        <div>
+                            <h3 class="text-base font-bold text-white mb-3 flex items-center justify-between">
+                                <span><i class="fa-solid fa-right-left text-purple-400 mr-2"></i>Instant QTM Swap</span>
+                                <span class="text-xs font-mono px-2 py-0.5 rounded bg-purple-500/20 text-purple-300">Slippage: 0.5%</span>
+                            </h3>
+
+                            <div class="space-y-3 font-mono">
+                                <!-- Pay -->
+                                <div class="bg-slate-900/80 p-3 rounded-xl border border-slate-800">
+                                    <div class="flex justify-between text-xs text-slate-400 mb-1">
+                                        <span>You Pay</span>
+                                        <span id="bnbBalText">Bal: 2.45 BNB</span>
+                                    </div>
+                                    <div class="flex items-center justify-between">
+                                        <input type="number" id="swapInput" value="0.5" oninput="calculateSwap()" class="bg-transparent text-white font-bold text-lg outline-none w-2/3" placeholder="0.0">
+                                        <div class="flex items-center space-x-2 bg-slate-800 px-2 py-1 rounded-lg text-xs text-yellow-400">
+                                            <i class="fa-solid fa-coins"></i><span>BNB</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Swap Arrow -->
+                                <div class="flex justify-center -my-2">
+                                    <button onclick="playSound('click')" class="w-8 h-8 rounded-full bg-cyan-500/20 border border-cyan-400/40 text-cyan-400 flex items-center justify-center hover:rotate-180 transition-transform duration-300">
+                                        <i class="fa-solid fa-arrow-down"></i>
+                                    </button>
+                                </div>
+
+                                <!-- Receive -->
+                                <div class="bg-slate-900/80 p-3 rounded-xl border border-slate-800">
+                                    <div class="flex justify-between text-xs text-slate-400 mb-1">
+                                        <span>You Receive (Est.)</span>
+                                        <span id="qtmBalText">Bal: 120 QTM</span>
+                                    </div>
+                                    <div class="flex items-center justify-between">
+                                        <input type="text" id="swapOutput" value="130.84" readonly class="bg-transparent text-cyan-400 font-bold text-lg outline-none w-2/3">
+                                        <div class="flex items-center space-x-2 bg-slate-800 px-2 py-1 rounded-lg text-xs text-cyan-300">
+                                            <i class="fa-solid fa-atom"></i><span>QTM</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button onclick="executeSwap()" class="w-full py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-purple-600 text-white font-bold tracking-wide shadow-neon-cyan hover:opacity-90 transition active:scale-95">
+                            Swap Token
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 2: STAKING VAULT & NFT PASS BADGES -->
+            <section id="tab-staking" class="hidden space-y-6">
+                <div class="glass-panel p-6 rounded-2xl border border-purple-500/20">
+                    <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-6">
+                        <div>
+                            <h2 class="text-2xl font-bold text-white flex items-center gap-3">
+                                <i class="fa-solid fa-vault text-purple-400"></i>
+                                Quantum Staking Vaults
+                            </h2>
+                            <p class="text-xs text-slate-400 font-mono mt-1">Lock QTM to yield sustainable rewards & unlock Tier NFT Passes</p>
+                        </div>
+                        <!-- Current User NFT Tier Display -->
+                        <div id="userBadgeCard" class="flex items-center space-x-3 bg-slate-900/90 border border-purple-500/40 p-3 rounded-xl">
+                            <div class="w-12 h-12 rounded-lg bg-gradient-to-tr from-cyan-400 to-purple-600 p-0.5">
+                                <div class="w-full h-full bg-qtm-dark rounded-[7px] flex items-center justify-center">
+                                    <i id="badgeIcon" class="fa-solid fa-shield-cat text-2xl text-cyan-400"></i>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="text-xs text-slate-400 font-mono">Your Staking Pass</div>
+                                <div id="badgeTitle" class="text-sm font-bold text-cyan-300">Bronze Quantum Staker</div>
+                                <div id="badgeMultiplier" class="text-[10px] text-pink-400 font-mono">1.0x APY Boost Activated</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Staking Pools -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <!-- Flexible Vault -->
+                        <div class="bg-slate-900/80 p-5 rounded-2xl border border-slate-800 hover:border-cyan-500/50 transition flex flex-col justify-between space-y-4">
+                            <div>
+                                <div class="flex justify-between items-start mb-3">
+                                    <span class="px-2.5 py-1 rounded-md bg-cyan-500/20 text-cyan-300 text-xs font-mono font-semibold">Flexible Lock</span>
+                                    <span class="text-emerald-400 font-mono text-sm font-bold">14.2% APY</span>
+                                </div>
+                                <h3 class="text-lg font-bold text-white">Quantum Genesis</h3>
+                                <p class="text-xs text-slate-400 mt-1">No lock period. Stake or unstake anytime with standard yield.</p>
+                            </div>
+                            <div class="space-y-2 text-xs font-mono text-slate-300">
+                                <div class="flex justify-between"><span>Minimum Stake:</span><span class="text-white">10 QTM</span></div>
+                                <div class="flex justify-between"><span>NFT Badge:</span><span class="text-cyan-400">Bronze Pass</span></div>
+                            </div>
+                            <button onclick="openStakeModal('Genesis', 14.2)" class="w-full py-2.5 rounded-xl bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/40 font-semibold text-sm transition">
+                                Stake Genesis
+                            </button>
+                        </div>
+
+                        <!-- 30-Day Vault -->
+                        <div class="bg-slate-900/80 p-5 rounded-2xl border border-purple-500/40 hover:border-purple-500/80 transition flex flex-col justify-between space-y-4 relative overflow-hidden">
+                            <div class="absolute top-0 right-0 bg-purple-600 text-white text-[10px] font-mono px-3 py-0.5 rounded-bl-lg font-bold">POPULAR</div>
+                            <div>
+                                <div class="flex justify-between items-start mb-3">
+                                    <span class="px-2.5 py-1 rounded-md bg-purple-500/20 text-purple-300 text-xs font-mono font-semibold">30 Days Lock</span>
+                                    <span class="text-emerald-400 font-mono text-sm font-bold">28.4% APY</span>
+                                </div>
+                                <h3 class="text-lg font-bold text-white">Cyber Vault</h3>
+                                <p class="text-xs text-slate-400 mt-1">30 days lockup. Upgrades pass to Silver Tier badge.</p>
+                            </div>
+                            <div class="space-y-2 text-xs font-mono text-slate-300">
+                                <div class="flex justify-between"><span>Minimum Stake:</span><span class="text-white">100 QTM</span></div>
+                                <div class="flex justify-between"><span>NFT Badge:</span><span class="text-purple-400">Silver Pass</span></div>
+                            </div>
+                            <button onclick="openStakeModal('Cyber Vault', 28.4)" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold text-sm shadow-neon-purple hover:opacity-90 transition">
+                                Stake Cyber Vault
+                            </button>
+                        </div>
+
+                        <!-- 90-Day VIP Vault -->
+                        <div class="bg-slate-900/80 p-5 rounded-2xl border border-pink-500/40 hover:border-pink-500/80 transition flex flex-col justify-between space-y-4">
+                            <div>
+                                <div class="flex justify-between items-start mb-3">
+                                    <span class="px-2.5 py-1 rounded-md bg-pink-500/20 text-pink-300 text-xs font-mono font-semibold">90 Days Lock</span>
+                                    <span class="text-emerald-400 font-mono text-sm font-bold">54.8% APY</span>
+                                </div>
+                                <h3 class="text-lg font-bold text-white">Apex Singularity</h3>
+                                <p class="text-xs text-slate-400 mt-1">Maximum APY multiplier + Gold Cyber NFT Pass entitlement.</p>
+                            </div>
+                            <div class="space-y-2 text-xs font-mono text-slate-300">
+                                <div class="flex justify-between"><span>Minimum Stake:</span><span class="text-white">500 QTM</span></div>
+                                <div class="flex justify-between"><span>NFT Badge:</span><span class="text-pink-400">Gold Pass</span></div>
+                            </div>
+                            <button onclick="openStakeModal('Apex Singularity', 54.8)" class="w-full py-2.5 rounded-xl bg-pink-500/20 hover:bg-pink-500/30 text-pink-300 border border-pink-500/40 font-semibold text-sm transition">
+                                Stake VIP Singularity
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 3: AI SMART CONTRACT SECURITY AUDITOR -->
+            <section id="tab-auditor" class="hidden space-y-6">
+                <div class="glass-panel p-6 rounded-2xl border border-cyan-500/20">
+                    <div class="max-w-3xl mb-6">
+                        <h2 class="text-2xl font-bold text-white flex items-center gap-3">
+                            <i class="fa-solid fa-shield-halved text-cyan-400"></i>
+                            Gemini AI Smart Contract Security Auditor
+                        </h2>
+                        <p class="text-xs text-slate-400 font-mono mt-1">Paste Solidity code to execute deep neural vulnerability analysis & threat detection via Gemini API.</p>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <!-- Code Input -->
+                        <div class="space-y-3">
+                            <div class="flex justify-between items-center text-xs font-mono text-slate-400">
+                                <span>Solidity Source Code</span>
+                                <button onclick="loadSampleCode()" class="text-cyan-400 hover:underline">Load Sample Vault Contract</button>
+                            </div>
+                            <textarea id="contractCode" rows="12" class="w-full bg-slate-900/90 border border-slate-800 rounded-xl p-3 text-xs font-mono text-cyan-300 focus:outline-none focus:border-cyan-500 transition resize-none" placeholder="// Paste Solidity code here..."></textarea>
+                            <button onclick="runAiAudit()" id="auditBtn" class="w-full py-3 rounded-xl bg-gradient-to-r from-cyan-500 via-purple-600 to-pink-500 text-white font-bold font-mono text-sm shadow-neon-cyan hover:opacity-90 transition flex items-center justify-center space-x-2">
+                                <i class="fa-solid fa-microchip"></i>
+                                <span>Run Gemini Security Audit</span>
+                            </button>
+                        </div>
+
+                        <!-- Audit Results Box -->
+                        <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-4 flex flex-col justify-between">
+                            <div>
+                                <div class="flex justify-between items-center border-b border-slate-800 pb-3 mb-3">
+                                    <span class="text-xs font-mono text-slate-400">Audit Status Report</span>
+                                    <span id="auditScoreBadge" class="text-xs font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-400">Idle</span>
+                                </div>
+                                <div id="auditReportOutput" class="text-xs font-mono text-slate-300 space-y-2 h-64 overflow-y-auto pr-2">
+                                    <p class="text-slate-500 italic">No audit performed yet. Paste smart contract code and click 'Run Gemini Security Audit'.</p>
+                                </div>
+                            </div>
+                            <div class="pt-3 border-t border-slate-800 text-[10px] font-mono text-slate-500 flex justify-between">
+                                <span>Powered by gemini-3-flash-preview</span>
+                                <span>QTM Shield Guard v2.4</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 4: ECOSYSTEM ROADMAP -->
+            <section id="tab-roadmap" class="hidden space-y-6">
+                <div class="glass-panel p-6 rounded-2xl border border-purple-500/20">
+                    <h2 class="text-2xl font-bold text-white mb-2 flex items-center gap-3">
+                        <i class="fa-solid fa-map-location-dot text-purple-400"></i>
+                        Ecosystem Roadmap (2026 - 2027)
+                    </h2>
+                    <p class="text-xs text-slate-400 font-mono mb-8">Strategic milestones for Quantum AI Network rollout</p>
+
+                    <div class="relative border-l-2 border-cyan-500/30 ml-4 lg:ml-8 space-y-8">
+                        <!-- Milestone 1 -->
+                        <div class="relative pl-6 lg:pl-8">
+                            <div class="absolute -left-[9px] top-1 w-4 h-4 rounded-full bg-cyan-400 shadow-neon-cyan"></div>
+                            <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-800">
+                                <span class="text-xs font-mono text-cyan-400 font-semibold">Q1 2026 - COMPLETED</span>
+                                <h3 class="text-base font-bold text-white mt-1">Genesis Protocol Launch & Auditing Engine</h3>
+                                <p class="text-xs text-slate-400 mt-1">Deployment of core QTM token smart contract, dApp frontend, and integration of Gemini-powered smart contract security auditor.</p>
+                            </div>
+                        </div>
+
+                        <!-- Milestone 2 -->
+                        <div class="relative pl-6 lg:pl-8">
+                            <div class="absolute -left-[9px] top-1 w-4 h-4 rounded-full bg-purple-500 shadow-neon-purple"></div>
+                            <div class="bg-slate-900/80 p-4 rounded-xl border border-purple-500/30">
+                                <span class="text-xs font-mono text-purple-400 font-semibold">Q2 2026 - IN PROGRESS</span>
+                                <h3 class="text-base font-bold text-white mt-1">Staking Vaults & Cyberpunk Pass NFTs</h3>
+                                <p class="text-xs text-slate-400 mt-1">Rollout of dynamic yield staking pools with automated NFT badge tier assignments and Android/iOS APK deployment.</p>
+                            </div>
+                        </div>
+
+                        <!-- Milestone 3 -->
+                        <div class="relative pl-6 lg:pl-8">
+                            <div class="absolute -left-[9px] top-1 w-4 h-4 rounded-full bg-pink-500"></div>
+                            <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-800">
+                                <span class="text-xs font-mono text-pink-400 font-semibold">Q3 2026 - UPCOMING</span>
+                                <h3 class="text-base font-bold text-white mt-1">Cross-Chain Quantum Bridge</h3>
+                                <p class="text-xs text-slate-400 mt-1">Enabling seamless multi-chain token liquidity bridging across BSC, Ethereum, and Arbitrum with AI security wrappers.</p>
+                            </div>
+                        </div>
+
+                        <!-- Milestone 4 -->
+                        <div class="relative pl-6 lg:pl-8">
+                            <div class="absolute -left-[9px] top-1 w-4 h-4 rounded-full bg-slate-600"></div>
+                            <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-800">
+                                <span class="text-xs font-mono text-slate-400 font-semibold">2027 VISION</span>
+                                <h3 class="text-base font-bold text-white mt-1">Autonomous AI DAO Governance</h3>
+                                <p class="text-xs text-slate-400 mt-1">Decentralized governance powered by AI analytical consensus, directing ecosystem treasury reserves automatically.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+
+        <!-- FLOATING AI WALLET ASSISTANT CHATBOT -->
+        <div class="fixed bottom-6 right-6 z-50">
+            <!-- Chat Window -->
+            <div id="aiChatBox" class="hidden w-80 sm:w-96 glass-panel rounded-2xl border border-cyan-500/40 shadow-2xl flex flex-col overflow-hidden mb-4 transition-all">
+                <!-- Chat Header -->
+                <div class="bg-slate-900/90 p-3 border-b border-cyan-500/30 flex justify-between items-center">
+                    <div class="flex items-center space-x-2">
+                        <div class="w-3 h-3 rounded-full bg-emerald-400 animate-pulse"></div>
+                        <span class="text-xs font-bold text-white font-mono">QTM Gemini AI Assistant</span>
+                    </div>
+                    <button onclick="toggleChat()" class="text-slate-400 hover:text-white text-xs px-2">
+                        <i class="fa-solid fa-xmark text-sm"></i>
+                    </button>
+                </div>
+                <!-- Chat Messages -->
+                <div id="chatMessages" class="p-3 h-64 overflow-y-auto space-y-3 text-xs font-mono">
+                    <div class="bg-slate-800/80 p-2.5 rounded-xl border border-slate-700 text-cyan-200">
+                        Hello! I am your Quantum AI Assistant. Ask me anything about QTM tokenomics, staking APY, or smart contract safety!
+                    </div>
+                </div>
+                <!-- Chat Input -->
+                <div class="p-2 bg-slate-900/90 border-t border-slate-800 flex items-center space-x-2">
+                    <input type="text" id="chatInput" onkeydown="if(event.key==='Enter') sendChatMessage()" placeholder="Ask AI Assistant..." class="flex-1 bg-slate-800 text-xs font-mono text-white rounded-xl px-3 py-2 outline-none border border-slate-700 focus:border-cyan-400">
+                    <button onclick="sendChatMessage()" class="p-2 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold transition">
+                        <i class="fa-solid fa-paper-plane"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Floating Toggle Button -->
+            <button onclick="toggleChat()" class="w-14 h-14 rounded-full bg-gradient-to-tr from-cyan-400 via-purple-600 to-pink-500 p-[2px] shadow-neon-cyan hover:scale-105 transition-transform flex items-center justify-center">
+                <div class="w-full h-full bg-qtm-dark rounded-full flex items-center justify-center text-cyan-400">
+                    <i class="fa-solid fa-robot text-2xl"></i>
+                </div>
+            </button>
+        </div>
+
+        <!-- STAKING MODAL -->
+        <div id="stakeModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+            <div class="glass-panel max-w-md w-full rounded-2xl border border-cyan-500/40 p-6 space-y-4">
+                <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                    <h3 class="text-lg font-bold text-white" id="modalVaultTitle">Stake Tokens</h3>
+                    <button onclick="closeStakeModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+                <div class="space-y-3 font-mono text-xs">
+                    <div class="flex justify-between text-slate-300">
+                        <span>Vault APY:</span>
+                        <span id="modalVaultApy" class="text-emerald-400 font-bold">0%</span>
+                    </div>
+                    <div class="bg-slate-900 p-3 rounded-xl border border-slate-800 space-y-1">
+                        <div class="text-slate-400 flex justify-between">
+                            <span>Amount to Stake</span>
+                            <span>Wallet Bal: 120 QTM</span>
+                        </div>
+                        <input type="number" id="stakeAmount" value="50" class="w-full bg-transparent text-white text-lg font-bold outline-none" placeholder="0.0">
+                    </div>
+                </div>
+                <button onclick="confirmStake()" class="w-full py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-purple-600 text-white font-bold text-sm shadow-neon-cyan hover:opacity-90 transition">
+                    Confirm & Stake QTM
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        // Global State Variables
+        let isWalletConnected = false;
+        let currentWalletAddress = "0x71C...4f2B";
+        let userQtmBalance = 120.0;
+        let userBnbBalance = 2.45;
+        let chartInstance = null;
+
+        // -------------------------------------------------------------
+        // Web Audio API Sound Generator (No external asset dependency)
+        // -------------------------------------------------------------
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playSound(type) {
+            try {
+                if (audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                }
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                if (type === 'click') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(800, audioCtx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(400, audioCtx.currentTime + 0.05);
+                    gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.05);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.05);
+                } else if (type === 'success') {
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(440, audioCtx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.15);
+                    gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.15);
+                }
+            } catch (e) {
+                console.debug('Audio playback note:', e);
+            }
+        }
+
+        // -------------------------------------------------------------
+        // Canvas Interactive Quantum Particle Animation
+        // -------------------------------------------------------------
+        const canvas = document.getElementById('quantumCanvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.size = Math.random() * 2 + 0.5;
+                this.speedX = (Math.random() - 0.5) * 0.8;
+                this.speedY = (Math.random() - 0.5) * 0.8;
+                this.color = Math.random() > 0.5 ? '#00f3ff' : '#8000ff';
+            }
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                if (this.x < 0 || this.x > canvas.width) this.speedX *= -1;
+                if (this.y < 0 || this.y > canvas.height) this.speedY *= -1;
+            }
+            draw() {
+                ctx.fillStyle = this.color;
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        for (let i = 0; i < 65; i++) {
+            particles.push(new Particle());
+        }
+
+        function animateCanvas() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach(p => {
+                p.update();
+                p.draw();
+            });
+            requestAnimationFrame(animateCanvas);
+        }
+        animateCanvas();
+
+        // -------------------------------------------------------------
+        // Navigation / Tab Switching
+        // -------------------------------------------------------------
+        function switchTab(tabId) {
+            playSound('click');
+            const tabs = ['dashboard', 'staking', 'auditor', 'roadmap'];
+            tabs.forEach(t => {
+                const el = document.getElementById('tab-' + t);
+                const btn = document.getElementById('nav-' + t);
+                if (t === tabId) {
+                    el.classList.remove('hidden');
+                    if (btn) {
+                        btn.className = "nav-btn px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center space-x-2 text-cyan-400 bg-cyan-950/40 border border-cyan-500/30";
+                    }
+                } else {
+                    el.classList.add('hidden');
+                    if (btn) {
+                        btn.className = "nav-btn px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center space-x-2 text-slate-400 hover:text-cyan-300";
+                    }
+                }
+            });
+        }
+
+        // -------------------------------------------------------------
+        // Wallet Simulation
+        // -------------------------------------------------------------
+        function toggleWallet() {
+            playSound('click');
+            const btnText = document.getElementById('walletText');
+            const icon = document.getElementById('walletIcon');
+            if (!isWalletConnected) {
+                isWalletConnected = true;
+                btnText.innerText = currentWalletAddress;
+                btnText.className = "text-emerald-400 font-mono";
+                icon.className = "fa-solid fa-circle-check text-emerald-400";
+                alert("Simulated Web3 Wallet Connected Successfully!\nAddress: " + currentWalletAddress);
+            } else {
+                isWalletConnected = false;
+                btnText.innerText = "Connect Wallet";
+                btnText.className = "text-cyan-300 font-mono";
+                icon.className = "fa-solid fa-wallet text-cyan-400";
+            }
+        }
+
+        // -------------------------------------------------------------
+        // Instant Swap Calculator
+        // -------------------------------------------------------------
+        function calculateSwap() {
+            const input = parseFloat(document.getElementById('swapInput').value) || 0;
+            const rate = 261.68; // 1 BNB = ~261 QTM
+            document.getElementById('swapOutput').value = (input * rate).toFixed(2);
+        }
+
+        function executeSwap() {
+            playSound('success');
+            const inputVal = parseFloat(document.getElementById('swapInput').value) || 0;
+            if (inputVal <= 0) {
+                alert("Please enter a valid swap amount!");
+                return;
+            }
+            const qtmReceived = inputVal * 261.68;
+            userQtmBalance += qtmReceived;
+            userBnbBalance -= inputVal;
+            document.getElementById('qtmBalText').innerText = "Bal: " + userQtmBalance.toFixed(1) + " QTM";
+            document.getElementById('bnbBalText').innerText = "Bal: " + userBnbBalance.toFixed(2) + " BNB";
+            alert("Swap Executed! Received " + qtmReceived.toFixed(2) + " QTM.");
+        }
+
+        // -------------------------------------------------------------
+        // Live Price Chart Setup
+        // -------------------------------------------------------------
+        function initChart() {
+            const chartCtx = document.getElementById('liveChart').getContext('2d');
+            const gradient = chartCtx.createLinearGradient(0, 0, 0, 300);
+            gradient.addColorStop(0, 'rgba(0, 243, 255, 0.4)');
+            gradient.addColorStop(1, 'rgba(0, 243, 255, 0.0)');
+
+            chartInstance = new Chart(chartCtx, {
+                type: 'line',
+                data: {
+                    labels: ['10:00', '10:15', '10:30', '10:45', '11:00', '11:15', '11:30'],
+                    datasets: [{
+                        label: 'QTM/USD Price',
+                        data: [2.10, 2.18, 2.15, 2.30, 2.28, 2.42, 2.48],
+                        borderColor: '#00f3ff',
+                        borderWidth: 2,
+                        fill: true,
+                        backgroundColor: gradient,
+                        tension: 0.4,
+                        pointRadius: 3,
+                        pointBackgroundColor: '#00f3ff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8', font: { family: 'Fira Code' } } },
+                        y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8', font: { family: 'Fira Code' } } }
+                    }
+                }
+            });
+        }
+
+        function setChartTimeframe(tf) {
+            playSound('click');
+            if (!chartInstance) return;
+            if (tf === '1H') {
+                chartInstance.data.labels = ['10:00', '10:15', '10:30', '10:45', '11:00', '11:15', '11:30'];
+                chartInstance.data.datasets[0].data = [2.10, 2.18, 2.15, 2.30, 2.28, 2.42, 2.48];
+            } else if (tf === '24H') {
+                chartInstance.data.labels = ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00', '24:00'];
+                chartInstance.data.datasets[0].data = [1.85, 1.92, 2.05, 2.12, 2.35, 2.40, 2.48];
+            } else {
+                chartInstance.data.labels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+                chartInstance.data.datasets[0].data = [1.20, 1.45, 1.60, 1.80, 2.10, 2.25, 2.48];
+            }
+            chartInstance.update();
+        }
+
+        // -------------------------------------------------------------
+        // Gemini API - AI Smart Contract Security Auditor
+        // -------------------------------------------------------------
+        function loadSampleCode() {
+            playSound('click');
+            document.getElementById('contractCode').value = 
+`// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.20;
+
+contract QuantumVault {
+    mapping(address => uint256) public balances;
+
+    function deposit() public payable {
+        balances[msg.sender] += msg.value;
+    }
+
+    function withdraw() public {
+        uint256 amount = balances[msg.sender];
+        require(amount > 0, "Zero balance");
+        
+        // Potential vulnerability: state update after transfer
+        (bool success, ) = msg.sender.call{value: amount}("");
+        require(success, "Transfer failed");
+        
+        balances[msg.sender] = 0;
+    }
+}`;
+        }
+
+        async function runAiAudit() {
+            playSound('click');
+            const code = document.getElementById('contractCode').value.trim();
+            const reportOut = document.getElementById('auditReportOutput');
+            const scoreBadge = document.getElementById('auditScoreBadge');
+            const btn = document.getElementById('auditBtn');
+
+            if (!code) {
+                alert("Please enter or paste Solidity smart contract code first.");
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> Analyzing with Gemini AI...`;
+            reportOut.innerHTML = `<div class="text-cyan-400 font-mono flex items-center gap-2"><i class="fa-solid fa-spinner animate-spin"></i> Running deep vulnerability detection...</div>`;
+
+            const systemPrompt = "You are a world-class Web3 Smart Contract Security Auditor. Analyze the provided Solidity code for reentrancy, overflow, access control, and logic vulnerabilities. Provide a concise bulleted audit summary and assign a safety score out of 100.";
+            const apiKey = ""; // Canvas runtime provides this automatically
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: "Audit this Solidity contract code:\n" + code }] }],
+                        systemInstruction: { parts: [{ text: systemPrompt }] }
+                    })
+                });
+
+                const data = await response.json();
+                const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+
+                if (text) {
+                    reportOut.innerText = text;
+                    scoreBadge.innerText = "Audit Completed";
+                    scoreBadge.className = "text-xs font-mono px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400";
+                    playSound('success');
+                } else {
+                    reportOut.innerText = "Audit failed to analyze code. Please check input syntax.";
+                }
+            } catch (err) {
+                reportOut.innerText = "Audit execution note: Unable to fetch external AI response. Verify network connectivity.";
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = `<i class="fa-solid fa-microchip"></i><span>Run Gemini Security Audit</span>`;
+            }
+        }
+
+        // -------------------------------------------------------------
+        // Gemini API - AI Wallet Assistant Chatbot
+        // -------------------------------------------------------------
+        function toggleChat() {
+            playSound('click');
+            const chatBox = document.getElementById('aiChatBox');
+            chatBox.classList.toggle('hidden');
+        }
+
+        async function sendChatMessage() {
+            const input = document.getElementById('chatInput');
+            const query = input.value.trim();
+            const chatContainer = document.getElementById('chatMessages');
+
+            if (!query) return;
+
+            playSound('click');
+            // Append user msg
+            chatContainer.innerHTML += `
+                <div class="bg-purple-900/40 p-2.5 rounded-xl border border-purple-500/30 text-purple-200 text-right">
+                    ${query}
+                </div>
+            `;
+            input.value = "";
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+
+            // Loading indicator
+            const loadingId = "load-" + Date.now();
+            chatContainer.innerHTML += `
+                <div id="${loadingId}" class="bg-slate-800/80 p-2.5 rounded-xl border border-slate-700 text-cyan-400 flex items-center space-x-2">
+                    <i class="fa-solid fa-spinner animate-spin"></i><span>Gemini thinking...</span>
+                </div>
+            `;
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+
+            const systemPrompt = "You are the official Quantum AI Network (QTM) Web3 Assistant. Keep answers concise, helpful, and focused on QTM staking, smart contract security, and crypto ecosystem metrics.";
+            const apiKey = "";
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: query }] }],
+                        systemInstruction: { parts: [{ text: systemPrompt }] }
+                    })
+                });
+
+                const data = await response.json();
+                const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || "I am currently optimizing network queries. How else can I assist with QTM?";
+
+                document.getElementById(loadingId).remove();
+                chatContainer.innerHTML += `
+                    <div class="bg-slate-800/80 p-2.5 rounded-xl border border-slate-700 text-cyan-200">
+                        ${reply}
+                    </div>
+                `;
+                playSound('success');
+            } catch (err) {
+                document.getElementById(loadingId).remove();
+                chatContainer.innerHTML += `
+                    <div class="bg-slate-800/80 p-2.5 rounded-xl border border-slate-700 text-slate-300">
+                        QTM Staking APY is currently 28.4% in the Cyber Vault. Ensure your Web3 wallet is connected to interact!
+                    </div>
+                `;
+            }
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        // -------------------------------------------------------------
+        // Staking Modal & NFT Pass Level Up Logic
+        // -------------------------------------------------------------
+        let activeVault = "";
+        function openStakeModal(vaultName, apy) {
+            playSound('click');
+            activeVault = vaultName;
+            document.getElementById('modalVaultTitle').innerText = "Stake in " + vaultName;
+            document.getElementById('modalVaultApy').innerText = apy + "% APY";
+            document.getElementById('stakeModal').classList.remove('hidden');
+        }
+
+        function closeStakeModal() {
+            playSound('click');
+            document.getElementById('stakeModal').classList.add('hidden');
+        }
+
+        function confirmStake() {
+            playSound('success');
+            const amt = parseFloat(document.getElementById('stakeAmount').value) || 0;
+            if (amt <= 0) {
+                alert("Please enter a valid staking amount.");
+                return;
+            }
+
+            closeStakeModal();
+            // Upgrade Badge Tier based on vault
+            const badgeTitle = document.getElementById('badgeTitle');
+            const badgeMultiplier = document.getElementById('badgeMultiplier');
+            const badgeIcon = document.getElementById('badgeIcon');
+
+            if (activeVault === 'Apex Singularity') {
+                badgeTitle.innerText = "Gold Cyber Staker Pass";
+                badgeMultiplier.innerText = "2.5x APY Multiplier Boost";
+                badgeTitle.className = "text-sm font-bold text-yellow-400";
+                badgeIcon.className = "fa-solid fa-crown text-2xl text-yellow-400";
+            } else if (activeVault === 'Cyber Vault') {
+                badgeTitle.innerText = "Silver Quantum Staker";
+                badgeMultiplier.innerText = "1.5x APY Multiplier Boost";
+                badgeTitle.className = "text-sm font-bold text-purple-300";
+                badgeIcon.className = "fa-solid fa-shield-halved text-2xl text-purple-400";
+            }
+
+            alert(`Staked ${amt} QTM into ${activeVault}! NFT Pass badge upgraded.`);
+        }
+
+        // Initialize App
+        window.onload = function() {
+            initChart();
+        };
+    </script>
+</body>
+</html>
